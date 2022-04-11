@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.12;
 
-interface IERC20 {
-	function transfer(address _to, uint256 _value) external;
-	function transferFrom(address from, address to, uint256 value) external;
-}
+import {IERC20} from "./interfaces/IERC20.sol";
 
-/// @dev Simple vault for depositing and withdrawing single ERC20 token.
 contract Vault1 {
 	// ============== Custom Errors ==============
 
