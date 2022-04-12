@@ -43,14 +43,9 @@ contract MockPriceFeed is AggregatorV3Interface {
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
-        ) {
-        return (
-            _roundId,
-            _exchangeRate,
-            0,
-            0,
-            1
-        );
+        )
+    {
+        return (_roundId, _exchangeRate, 0, 0, 1);
     }
 
     function latestRoundData()
@@ -62,13 +57,8 @@ contract MockPriceFeed is AggregatorV3Interface {
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
-        ) {
-        return (
-            1,
-            _exchangeRate,
-            0,
-            0,
-            1
-        );
+        )
+    {
+        return (1, _exchangeRate, 0, 0, 1);
     }
 }

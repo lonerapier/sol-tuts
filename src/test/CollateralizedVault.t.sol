@@ -7,7 +7,6 @@ import {MockPriceFeed} from "../MockPriceFeed.sol";
 import {DSTestPlus} from "./utils/DSTestPlus.sol";
 
 contract TestCollateralizedVault is DSTestPlus {
-
     address public constant vaultOwner = address(0xabcd);
     address public constant mockUser = address(0x1234);
     uint256 public constant INITIAL_VAULT_DAI_BALANCE = 1000000;
@@ -117,7 +116,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testBorrowPartial() public {
@@ -130,7 +132,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), partialLoanAmount);
         assertEq(dai.balanceOf(address(this)), partialLoanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - partialLoanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - partialLoanAmount
+        );
     }
 
     function testBorrowMultiple() public {
@@ -146,7 +151,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), totalLoanAmount);
         assertEq(dai.balanceOf(address(this)), totalLoanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - totalLoanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - totalLoanAmount
+        );
     }
 
     function testBorrowInsufficientCollateral() public {
@@ -164,7 +172,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), partialLoanAmount);
         assertEq(dai.balanceOf(address(this)), partialLoanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - partialLoanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - partialLoanAmount
+        );
     }
 
     function testBorrowAppreciateETH() public {
@@ -182,7 +193,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testBorrowMultipleAppreciateETH() public {
@@ -192,15 +206,16 @@ contract TestCollateralizedVault is DSTestPlus {
 
         vault.deposit{value: 10 ether}();
 
-
-        uint256 partialLoanAmount1 = partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE);
+        uint256 partialLoanAmount1 = partialLoanAmountETH *
+            uint256(INITIAL_EXCHANGE_RATE);
         vault.borrow(partialLoanAmount1);
 
         // set new rate
         priceFeed.modifyExchangeRate(3200);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
-        uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) - (partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE));
+        uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) -
+            (partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE));
 
         vault.borrow(partialLoanAmount2);
 
@@ -208,7 +223,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), totalLoanAmount);
         assertEq(dai.balanceOf(address(this)), totalLoanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - totalLoanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - totalLoanAmount
+        );
     }
 
     function testBorrowDepreciateETH() public {
@@ -225,7 +243,10 @@ contract TestCollateralizedVault is DSTestPlus {
 
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testBorrowMultipleDepreciateETH() public {
@@ -236,25 +257,33 @@ contract TestCollateralizedVault is DSTestPlus {
 
         vault.deposit{value: 10 ether}();
 
-        uint256 partialLoanAmount1 = partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE);
+        uint256 partialLoanAmount1 = partialLoanAmountETH *
+            uint256(INITIAL_EXCHANGE_RATE);
         vault.borrow(partialLoanAmount1);
 
         // set new rate
         priceFeed.modifyExchangeRate(2800);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
-        uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) - (partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE));
+        uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) -
+            (partialLoanAmountETH * uint256(INITIAL_EXCHANGE_RATE));
         vault.borrow(partialLoanAmount2);
 
         uint256 totalLoanAmount = partialLoanAmount1 + partialLoanAmount2;
 
         assertEq(vault.loans(address(this)), totalLoanAmount);
         assertEq(dai.balanceOf(address(this)), totalLoanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - totalLoanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - totalLoanAmount
+        );
     }
 
     function testBorrowFuzz(uint256 depositAmount) public {
-        vm.assume(depositAmount < type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE)));
+        vm.assume(
+            depositAmount <
+                type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE))
+        );
         uint256 depositETH = depositAmount * 1e18;
         uint256 daiMint = depositETH * uint256(INITIAL_EXCHANGE_RATE);
 
@@ -272,7 +301,10 @@ contract TestCollateralizedVault is DSTestPlus {
     }
 
     function testBorrowPartialFuzz(uint256 depositAmount) public {
-        vm.assume(depositAmount < type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE)));
+        vm.assume(
+            depositAmount <
+                type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE))
+        );
         uint256 depositETH = depositAmount * 1e18;
         uint256 daiMint = depositETH * uint256(INITIAL_EXCHANGE_RATE);
 
@@ -281,7 +313,8 @@ contract TestCollateralizedVault is DSTestPlus {
 
         vault.deposit{value: depositETH}();
 
-        uint256 partialLoanAmount = (depositAmount * uint256(INITIAL_EXCHANGE_RATE)) >> 1;
+        uint256 partialLoanAmount = (depositAmount *
+            uint256(INITIAL_EXCHANGE_RATE)) >> 1;
         vault.borrow(partialLoanAmount);
 
         assertEq(vault.loans(address(this)), partialLoanAmount);
@@ -290,7 +323,10 @@ contract TestCollateralizedVault is DSTestPlus {
     }
 
     function testBorrowMultipleFuzz(uint256 depositAmount) public {
-        vm.assume(depositAmount < type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE)));
+        vm.assume(
+            depositAmount <
+                type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE))
+        );
         uint256 depositETH = depositAmount * 1e18;
         uint256 daiMint = depositETH * uint256(INITIAL_EXCHANGE_RATE);
 
@@ -299,7 +335,8 @@ contract TestCollateralizedVault is DSTestPlus {
 
         vault.deposit{value: depositETH}();
 
-        uint256 totalLoanAmount = depositAmount * uint256(INITIAL_EXCHANGE_RATE);
+        uint256 totalLoanAmount = depositAmount *
+            uint256(INITIAL_EXCHANGE_RATE);
         uint256 partialLoanAmount = totalLoanAmount >> 1;
 
         vault.borrow(partialLoanAmount);
@@ -310,18 +347,23 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(dai.balanceOf(address(vault)), daiMint - totalLoanAmount);
     }
 
-    function testBorrowInsufficientCollateralFuzz(uint256 depositAmount) public {
-        vm.assume(depositAmount < type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE)));
+    function testBorrowInsufficientCollateralFuzz(uint256 depositAmount)
+        public
+    {
+        vm.assume(
+            depositAmount <
+                type(uint256).max / (1e18 * uint256(INITIAL_EXCHANGE_RATE))
+        );
         uint256 depositETH = depositAmount * 1e18;
         uint256 daiMint = depositETH * uint256(INITIAL_EXCHANGE_RATE);
-
 
         vm.deal(address(this), depositETH);
         dai.mint(address(vault), daiMint);
 
         vault.deposit{value: depositETH}();
 
-        uint256 totalLoanAmount = depositAmount * uint256(INITIAL_EXCHANGE_RATE);
+        uint256 totalLoanAmount = depositAmount *
+            uint256(INITIAL_EXCHANGE_RATE);
         uint256 partialLoanAmount = totalLoanAmount >> 1;
 
         vault.borrow(partialLoanAmount);
@@ -417,7 +459,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(vault.deposits(address(this)), 5 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testWithdrawWithMultipleLoans() public {
@@ -434,7 +479,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount * 2);
         assertEq(vault.deposits(address(this)), 4 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount * 2);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount * 2);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount * 2
+        );
     }
 
     function testWithdrawWithMultipleLoansAndInsufficientBalance() public {
@@ -452,7 +500,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount * 2);
         assertEq(vault.deposits(address(this)), 10 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount * 2);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount * 2);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount * 2
+        );
     }
 
     function testRepay() public {
@@ -487,7 +538,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount - repayAmount);
         assertEq(vault.deposits(address(this)), 10 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount - repayAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount + repayAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount + repayAmount
+        );
     }
 
     function testRepayInvalidAmount() public {
@@ -504,7 +558,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(vault.deposits(address(this)), 10 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testLiquidate() public {
@@ -524,7 +581,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), 0);
         assertEq(vault.deposits(address(this)), 0 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     function testLiquidateUnauthorised() public {
@@ -547,7 +607,10 @@ contract TestCollateralizedVault is DSTestPlus {
         assertEq(vault.loans(address(this)), loanAmount);
         assertEq(vault.deposits(address(this)), 10 ether);
         assertEq(dai.balanceOf(address(this)), loanAmount);
-        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE - loanAmount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
     }
 
     receive() external payable {}

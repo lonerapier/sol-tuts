@@ -3,10 +3,10 @@ pragma solidity >=0.8.12;
 
 import {Dai} from "./Dai.sol";
 import {AggregatorV3Interface} from "./interfaces/AggregatorV3Interface.sol";
-import {DSTestPlus} from "./test/utils/DSTestPlus.sol";
 
-contract CollateralizedVault is DSTestPlus {
 
+/// @notice vault for single collateral type namely ETH
+contract CollateralizedVault {
     // ============== Custom Errors ==============
 
     error InsufficientBalance();
@@ -30,8 +30,8 @@ contract CollateralizedVault is DSTestPlus {
     Dai public immutable token;
     AggregatorV3Interface public immutable oracle;
 
-    mapping(address => uint256) public deposits;        // deposits is in ETH amount
-    mapping(address => uint256) public loans;           // loans is in DAI amount
+    mapping(address => uint256) public deposits; // deposits is in ETH amount
+    mapping(address => uint256) public loans; // loans is in DAI amount
 
     // ============== Constructor ==============
 
@@ -66,7 +66,8 @@ contract CollateralizedVault is DSTestPlus {
 
         uint256 loanAmount = loans[msg.sender];
 
-        if (_daiAmount > (depositDaiAmount - loanAmount)) revert InsufficientCollateral();
+        if (_daiAmount > (depositDaiAmount - loanAmount))
+            revert InsufficientCollateral();
 
         loans[msg.sender] += _daiAmount;
 
@@ -85,13 +86,13 @@ contract CollateralizedVault is DSTestPlus {
         uint256 depositDaiAmount = applyExchangeRate(deposits[msg.sender]);
         uint256 withdrawDaiAmount = applyExchangeRate(_ethAmount);
 
-        if (depositDaiAmount - loans[msg.sender] < withdrawDaiAmount) revert InsufficientBalance();
+        if (depositDaiAmount - loans[msg.sender] < withdrawDaiAmount)
+            revert InsufficientBalance();
         unchecked {
             deposits[msg.sender] -= _ethAmount;
         }
 
         payable(msg.sender).transfer(_ethAmount);
-
     }
 
     /// @notice repay loan
