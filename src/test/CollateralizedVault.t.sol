@@ -9,9 +9,9 @@ import {DSTestPlus} from "./utils/DSTestPlus.sol";
 contract TestCollateralizedVault is DSTestPlus {
     address public constant vaultOwner = address(0xabcd);
     address public constant mockUser = address(0x1234);
-    uint256 public constant INITIAL_VAULT_DAI_BALANCE = 1000000;
+    uint256 public constant INITIAL_VAULT_DAI_BALANCE = 10000000000000000000000;
     uint256 public constant INITIAL_SETUP_BALANCE = 100 ether;
-    int256 public constant INITIAL_EXCHANGE_RATE = 3000;
+    int256 public constant INITIAL_EXCHANGE_RATE = 300000000000;
 
     uint256 public constant CHAIN_ID = 4;
     Dai public dai;
@@ -20,7 +20,7 @@ contract TestCollateralizedVault is DSTestPlus {
 
     function setUp() public {
         dai = new Dai(CHAIN_ID);
-        priceFeed = new MockPriceFeed(INITIAL_EXCHANGE_RATE, 8);
+        priceFeed = new MockPriceFeed(INITIAL_EXCHANGE_RATE, 18);
 
         vm.prank(vaultOwner);
         vault = new CollateralizedVault(address(dai), address(priceFeed));
@@ -184,7 +184,7 @@ contract TestCollateralizedVault is DSTestPlus {
         vault.deposit{value: 10 ether}();
 
         // set new rate
-        priceFeed.modifyExchangeRate(3200);
+        priceFeed.modifyExchangeRate(320000000000);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
         uint256 loanAmount = 10 * uint256(exchangeRate);
@@ -211,7 +211,7 @@ contract TestCollateralizedVault is DSTestPlus {
         vault.borrow(partialLoanAmount1);
 
         // set new rate
-        priceFeed.modifyExchangeRate(3200);
+        priceFeed.modifyExchangeRate(320000000000);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
         uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) -
@@ -235,7 +235,7 @@ contract TestCollateralizedVault is DSTestPlus {
         vault.deposit{value: 10 ether}();
 
         // set new rate
-        priceFeed.modifyExchangeRate(2800);
+        priceFeed.modifyExchangeRate(280000000000);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
         uint256 loanAmount = 10 * uint256(exchangeRate);
@@ -262,7 +262,7 @@ contract TestCollateralizedVault is DSTestPlus {
         vault.borrow(partialLoanAmount1);
 
         // set new rate
-        priceFeed.modifyExchangeRate(2800);
+        priceFeed.modifyExchangeRate(280000000000);
         (, int256 exchangeRate, , , ) = priceFeed.latestRoundData();
 
         uint256 partialLoanAmount2 = (totalDepositETH * uint256(exchangeRate)) -
@@ -572,8 +572,8 @@ contract TestCollateralizedVault is DSTestPlus {
         uint256 loanAmount = 5 * uint256(INITIAL_EXCHANGE_RATE);
         vault.borrow(loanAmount);
 
-        priceFeed.modifyExchangeRate(100);
-        assertEq(vault.applyExchangeRate(vault.deposits(address(this))), 1000);
+        priceFeed.modifyExchangeRate(10000000000);
+        assertEq(vault.applyExchangeRate(vault.deposits(address(this))), 100000000000);
 
         vm.prank(vaultOwner);
         vault.liquidate(address(this));
