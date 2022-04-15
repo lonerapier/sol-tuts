@@ -4,7 +4,6 @@ pragma solidity >=0.8.12;
 import {Dai} from "./Dai.sol";
 import {AggregatorV3Interface} from "./interfaces/AggregatorV3Interface.sol";
 
-
 /// @notice vault for single collateral type namely ETH
 contract CollateralizedVault {
     // ============== Custom Errors ==============

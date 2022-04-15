@@ -573,7 +573,10 @@ contract TestCollateralizedVault is DSTestPlus {
         vault.borrow(loanAmount);
 
         priceFeed.modifyExchangeRate(10000000000);
-        assertEq(vault.applyExchangeRate(vault.deposits(address(this))), 100000000000);
+        assertEq(
+            vault.applyExchangeRate(vault.deposits(address(this))),
+            100000000000
+        );
 
         vm.prank(vaultOwner);
         vault.liquidate(address(this));
