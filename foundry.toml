@@ -19,6 +19,7 @@ remappings = [
   "@ds=lib/ds-test/src/",
   "@std=lib/forge-std/src/",
   "@solmate=lib/solmate/src/",
+  "@yield-utils=lib/yield-utils-v2/contracts/",
 ]
 
 # Extreme Fuzzing CI Profile :P
