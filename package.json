@@ -12,6 +12,7 @@
         "url": "git+https://github.com/abigger87/femplate.git"
     },
     "devDependencies": {
+        "husky": "^7.0.0",
         "prettier": "^2.6.2",
         "prettier-plugin-solidity": "^1.0.0-beta.13"
     },
@@ -20,6 +21,7 @@
         "sync": "make update",
         "test": "make test",
         "snapshot": "make snapshot",
-        "lint": "make lint"
+        "lint": "make lint",
+        "prepare": "husky install"
     }
 }
