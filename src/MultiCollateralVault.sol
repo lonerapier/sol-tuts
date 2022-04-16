@@ -210,7 +210,7 @@ contract MultiCollateralVault is AccessControl {
             deposits[_collateral][msg.sender] = collateralDeposit - _amount;
         }
 
-        IERC20(_collateral).transferFrom(address(this), msg.sender, _amount);
+        IERC20(_collateral).transfer(msg.sender, _amount);
 
         emit Withdraw(msg.sender, _amount);
     }
