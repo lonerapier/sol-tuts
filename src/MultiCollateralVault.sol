@@ -20,7 +20,6 @@ contract MultiCollateralVault is AccessControl {
     error InsufficientBalance();
     error InsufficientCollateral();
     error InvalidAmount();
-    error InvalidBalance();
     error InvalidCollateral();
     error InvalidExchangeRate();
     error InvalidPriceAndCollateralLength();
@@ -57,8 +56,6 @@ contract MultiCollateralVault is AccessControl {
     constructor(
         address _owner,
         address _dai,
-        // address[] memory _priceFeeds,
-        // address[] memory _collaterals,
         address liquidator,
         address collateralManager
     ) {
@@ -218,7 +215,7 @@ contract MultiCollateralVault is AccessControl {
     /// @notice repay loan
     /// @param _daiAmount amount of DAI to repay
     function repay(uint256 _daiAmount) external {
-        if (loans[msg.sender] < _daiAmount) revert InvalidBalance();
+        if (loans[msg.sender] < _daiAmount) revert InvalidAmount();
 
         unchecked {
             loans[msg.sender] -= _daiAmount;
@@ -235,8 +232,6 @@ contract MultiCollateralVault is AccessControl {
     /// @dev restriced to owner
     /// @param _borrower borrower address
     function liquidate(address _borrower) external auth {
-        if (msg.sender != owner) revert Unauthorised();
-
         uint256 depositDaiAmount = getTotalDepositPrices(_borrower);
         uint256 loanAmount = loans[_borrower];
         if (depositDaiAmount >= loanAmount) revert Safe();
@@ -247,6 +242,7 @@ contract MultiCollateralVault is AccessControl {
             delete deposits[userCollateral[i]][_borrower];
         }
 
+        delete loans[_borrower];
         delete userCollaterals[_borrower];
 
         emit Liquidate(_borrower);
@@ -260,11 +256,17 @@ contract MultiCollateralVault is AccessControl {
         external
         auth
     {
-        // if (msg.sender != owner) revert Unauthorised();
-
         if (activeCollateral[_token]) revert InvalidCollateral();
 
         activeCollateral[_token] = true;
         tokenPriceFeeds[_token] = _priceFeed;
+    }
+
+    /// @notice helper function to get user's active collaterals
+    /// @dev only for testing purposes
+    /// @param _guy user address
+    /// @return array length of active collaterals
+    function userCollateralsLength(address _guy) public view returns (uint256) {
+        return userCollaterals[_guy].length;
     }
 }

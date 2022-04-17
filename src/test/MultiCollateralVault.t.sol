@@ -715,4 +715,469 @@ contract TestMultiCollateralVault is DSTestPlus {
             INITIAL_VAULT_DAI_BALANCE - partialLoanAmount
         );
     }
+
+    function testWithdraw() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+
+        vault.withdraw(tokens[0], amount);
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), 0);
+        assertEq(vault.userCollateralsLength(address(this)), 0);
+        assertEq(dai.balanceOf(address(this)), 0);
+        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), 0);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE
+        );
+    }
+
+    function testWithdrawMultiple() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        vault.withdraw(tokens[0], amount);
+        vault.withdraw(tokens[1], amount);
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), 0);
+        assertEq(vault.deposits(tokens[1], address(this)), 0);
+        assertEq(vault.userCollateralsLength(address(this)), 0);
+        assertEq(dai.balanceOf(address(this)), 0);
+        assertEq(dai.balanceOf(address(vault)), INITIAL_VAULT_DAI_BALANCE);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), 0);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE
+        );
+        assertEq(MockERC20(tokens[1]).balanceOf(address(vault)), 0);
+        assertEq(
+            MockERC20(tokens[1]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE
+        );
+    }
+
+    function testWithdrawMultiplePartial() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        uint256 partialWithdrawAmount = amount >> 1;
+
+        vault.withdraw(tokens[0], partialWithdrawAmount);
+        vault.withdraw(tokens[1], partialWithdrawAmount);
+
+        assertEq(vault.userCollateralsLength(address(this)), 2);
+        assertEq(
+            vault.deposits(tokens[0], address(this)),
+            amount - partialWithdrawAmount
+        );
+        assertEq(
+            vault.deposits(tokens[1], address(this)),
+            amount - partialWithdrawAmount
+        );
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(vault)),
+            partialWithdrawAmount
+        );
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - partialWithdrawAmount
+        );
+        assertEq(
+            MockERC20(tokens[1]).balanceOf(address(vault)),
+            partialWithdrawAmount
+        );
+        assertEq(
+            MockERC20(tokens[1]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - partialWithdrawAmount
+        );
+    }
+
+    function testWithdrawInvalidCollateral() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+
+        hevm.expectRevert(abi.encodeWithSignature("InvalidCollateral()"));
+        vault.withdraw(address(this), amount);
+    }
+
+    function testWithdrawInvalidAmount() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+
+        hevm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
+        vault.withdraw(tokens[0], 0);
+    }
+
+    function testWithdrawInsufficientBalance() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+
+        hevm.expectRevert(abi.encodeWithSignature("InsufficientBalance()"));
+        vault.withdraw(tokens[0], amount + 1);
+    }
+
+    function testWithdrawInsufficientCollateral() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        hevm.expectRevert(abi.encodeWithSignature("InsufficientCollateral()"));
+        vault.withdraw(tokens[0], amount + 1);
+
+        assertEq(vault.deposits(tokens[0], address(this)), amount);
+        assertEq(vault.deposits(tokens[1], address(this)), amount);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+        assertEq(MockERC20(tokens[1]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[1]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+    }
+
+    function testWithdrawWithLoan() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        uint256 partialAmount = amount >> 1;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], partialAmount);
+        vault.borrow(loanAmount);
+
+        vault.withdraw(tokens[0], partialAmount);
+
+        assertEq(vault.loans(address(this)), loanAmount);
+        assertEq(
+            vault.deposits(tokens[0], address(this)),
+            amount - partialAmount
+        );
+        assertEq(vault.userCollateralsLength(address(this)), 1);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), partialAmount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount + partialAmount
+        );
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount
+        );
+    }
+
+    function testWithdrawWithMultipleLoan() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        uint256 partialAmount = 2 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], partialAmount);
+        vault.borrow(loanAmount);
+        vault.borrow(loanAmount);
+
+        vault.withdraw(tokens[0], partialAmount);
+
+        assertEq(vault.loans(address(this)), loanAmount << 1);
+        assertEq(
+            vault.deposits(tokens[0], address(this)),
+            amount - partialAmount
+        );
+        assertEq(vault.userCollateralsLength(address(this)), 1);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(vault)),
+            amount - partialAmount
+        );
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount + partialAmount
+        );
+    }
+
+    function testWithdrawWithMultipleCollateral() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        uint256 partialAmount = 2 * 1e18;
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], partialAmount);
+        vault.borrow(loanAmount);
+        vault.borrow(loanAmount);
+
+        vault.withdraw(tokens[0], partialAmount);
+
+        assertEq(vault.loans(address(this)), loanAmount << 1);
+        assertEq(
+            vault.deposits(tokens[0], address(this)),
+            amount - partialAmount
+        );
+        assertEq(vault.deposits(tokens[1], address(this)), amount);
+        assertEq(vault.userCollateralsLength(address(this)), 2);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(vault)),
+            amount - partialAmount
+        );
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount + partialAmount
+        );
+        assertEq(MockERC20(tokens[1]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[1]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+    }
+
+    function testRepay() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount);
+
+        dai.approve(address(vault), loanAmount);
+        vault.repay(loanAmount);
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), amount);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+    }
+
+    function testRepayPartial() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount);
+
+        uint256 repayAmount = loanAmount >> 1;
+        dai.approve(address(vault), repayAmount);
+        vault.repay(repayAmount);
+
+        assertEq(vault.loans(address(this)), loanAmount - repayAmount);
+        assertEq(vault.deposits(tokens[0], address(this)), amount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount + repayAmount
+        );
+    }
+
+    function testRepayMultipleWithSingleLoan() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount);
+
+        dai.approve(address(vault), loanAmount);
+        vault.repay(loanAmount);
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), amount);
+        assertEq(vault.deposits(tokens[1], address(this)), amount);
+    }
+
+    function testRepayMultipleWithMultipleLoan() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+        vault.deposit(tokens[1], amount);
+
+        uint256 loanAmount1 = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount1);
+        uint256 loanAmount2 = vault.applyExchangeRate(tokens[1], amount);
+        vault.borrow(loanAmount2);
+
+        dai.approve(address(vault), loanAmount2);
+        vault.repay(loanAmount2);
+
+        assertEq(vault.loans(address(this)), loanAmount1);
+    }
+
+    function testRepayInvalidAmount() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount);
+
+        hevm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
+        vault.repay(loanAmount + 1);
+    }
+
+    function testRepayFuzz(uint256 _amount) public {
+        _amount = bound(_amount, 1, INITIAL_USER_TOKEN_BALANCE);
+
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        vault.deposit(tokens[0], _amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], _amount);
+        vault.borrow(loanAmount);
+
+        dai.approve(address(vault), loanAmount);
+        vault.repay(loanAmount);
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), _amount);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), _amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - _amount
+        );
+    }
+
+    function testRepayPartialFuzz(uint256 _amount) public {
+        _amount = bound(_amount, 1, INITIAL_USER_TOKEN_BALANCE);
+
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        vault.deposit(tokens[0], _amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], _amount);
+        vault.borrow(loanAmount);
+
+        uint256 repayAmount = loanAmount >> 1;
+        dai.approve(address(vault), repayAmount);
+        vault.repay(repayAmount);
+
+        assertEq(vault.loans(address(this)), loanAmount - repayAmount);
+        assertEq(vault.deposits(tokens[0], address(this)), _amount);
+        assertEq(
+            dai.balanceOf(address(vault)),
+            INITIAL_VAULT_DAI_BALANCE - loanAmount + repayAmount
+        );
+    }
+
+    function testLiquidate() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], amount);
+        vault.borrow(loanAmount);
+
+        MockPriceFeed(priceFeeds[0]).modifyExchangeRate(100 * 1e8);
+
+        hevm.prank(liquidator);
+        vault.liquidate(address(this));
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), 0);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+        assertEq(dai.balanceOf(address(this)), loanAmount);
+    }
+
+    function testLiquidateSafe() public {
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        uint256 amount = 10 * 1e18;
+        vault.deposit(tokens[0], amount);
+
+        hevm.prank(liquidator);
+        hevm.expectRevert(abi.encodeWithSignature("Safe()"));
+        vault.liquidate(address(this));
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), amount);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - amount
+        );
+    }
+
+    function testLiquidateFuzz(uint256 _amount) public {
+        _amount = bound(_amount, 1, INITIAL_USER_TOKEN_BALANCE);
+
+        _setUpInitialPriceFeeds();
+        _setUpBalances();
+
+        vault.deposit(tokens[0], _amount);
+
+        uint256 loanAmount = vault.applyExchangeRate(tokens[0], _amount);
+        vault.borrow(loanAmount);
+
+        MockPriceFeed(priceFeeds[0]).modifyExchangeRate(100 * 1e8);
+
+        hevm.prank(liquidator);
+        vault.liquidate(address(this));
+
+        assertEq(vault.loans(address(this)), 0);
+        assertEq(vault.deposits(tokens[0], address(this)), 0);
+        assertEq(MockERC20(tokens[0]).balanceOf(address(vault)), _amount);
+        assertEq(
+            MockERC20(tokens[0]).balanceOf(address(this)),
+            INITIAL_USER_TOKEN_BALANCE - _amount
+        );
+        assertEq(dai.balanceOf(address(this)), loanAmount);
+    }
 }
