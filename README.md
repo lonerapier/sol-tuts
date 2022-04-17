@@ -1,5 +1,7 @@
 # sol-tuts
 
+[![tests](https://github.com/dsam82/sol-tuts/actions/workflows/tests.yml/badge.svg)](https://github.com/dsam82/sol-tuts/actions/workflows/tests.yml) [![lints](https://github.com/dsam82/sol-tuts/actions/workflows/lints.yml/badge.svg)](https://github.com/dsam82/sol-tuts/actions/workflows/lints.yml)
+
 Contains contracts and tests for [solidity mentorship](https://github.com/alcueca/solidity-mentorship) problems by [@alcueca](https://github.com/alcueca).
 
 ## Contracts
@@ -11,6 +13,15 @@ Contains contracts and tests for [solidity mentorship](https://github.com/alcuec
 - [CollateralizedVault](src/CollateralizedVault.sol)
 - [MultiCollateralVault](src/MultiCollateralVault.sol): With `AccessControl`.
 - [xy = k AMM](https://github.com/dsam82/unifap-v2)
+
+## Gas Reports
+
+- [Registry](assets/Registry.png)
+- [Vault1](assets/Vault1.png)
+- [Vault2](assets/Vault2.png)
+- [Vault3](assets/Vault3.png)
+- [CollateralizedVault](assets/CollateralizedVault.png)
+- [MultiCollateralVault](assets/MultiCollateralVault.png)
 
 ## Disclaimer
 
